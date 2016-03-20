@@ -47,7 +47,7 @@ namespace TranslatableReader.ViewModels
 		{
 			if (suspending)
 				state[nameof(Value)] = Value;
-			await Task.Yield();
+			await Task.CompletedTask;
 		}
 
 		public async Task RemoveBooksAsync(List<Book> books)
@@ -58,7 +58,7 @@ namespace TranslatableReader.ViewModels
 
 		public void OpenBook(Book book)
 		{
-			NavigationService.Navigate(typeof(Views.CurrentBookPage), book);
+			NavigationService.Navigate(typeof(Views.BookPage), book.OriginAccessToken);
 		}
 	}
 }

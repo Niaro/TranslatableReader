@@ -9,8 +9,7 @@
       xmlns:local="using:TranslatableReader.Views"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       xmlns:vm="using:TranslatableReader.ViewModels" mc:Ignorable="d"
-	  x:Name="ThisPage" 
-	  RequestedTheme="Light">
+	  x:Name="ThisPage">
 
 	<Page.DataContext>
 		<vm:LibraryPageViewModel />

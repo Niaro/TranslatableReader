@@ -9,40 +9,24 @@ namespace TranslatableReader.Models
 {
 	public class Book : BindableBase
 	{
-		public string AccessToken { get; set; } = default(string);
+		public string OriginAccessToken { get; set; } = default(string);
 		public string Name { get; set; } = default(string);
 
 		[JsonIgnore]
-		public StorageFile ContentFile { get; private set; } = default(StorageFile);
+		public StorageFile OriginFile { get; set; } = default(StorageFile);
 
 		[JsonIgnore]
-		public StorageFile LibraryStorageFile { get; private set; }
+		public StorageFile LibraryBookFile { get; set; }
 
 		public Book()
 		{
 		}
 
-		public Book(StorageFile bookContentFile)
+		public Book(StorageFile originBookFile)
 		{
-			ContentFile = bookContentFile;
-			Name = ContentFile.Name;
-			AccessToken = StorageApplicationPermissions.FutureAccessList.Add(bookContentFile); 
-		}
-
-		public static async Task<Book> ConvertToBook(StorageFile libraryStorageFile)
-		{
-			var serializedBook = await FileIO.ReadTextAsync(libraryStorageFile);
-			var book = JsonConvert.DeserializeObject<Book>(serializedBook);
-			book.LibraryStorageFile = libraryStorageFile;
-			book.ContentFile = await StorageApplicationPermissions.FutureAccessList.GetFileAsync(book.AccessToken); 
-			return book;
-		}
-
-		public async Task CreateLibraryBookAsync(StorageFolder libraryStorage)
-		{
-			var serializedBook = JsonConvert.SerializeObject(this);
-			LibraryStorageFile = await libraryStorage.CreateFileAsync(Name);
-			await FileIO.WriteTextAsync(LibraryStorageFile, serializedBook);
+			OriginFile = originBookFile;
+			Name = OriginFile.Name;
+			OriginAccessToken = StorageApplicationPermissions.FutureAccessList.Add(originBookFile); 
 		}
 
 		public override bool Equals(object obj)
@@ -51,7 +35,7 @@ namespace TranslatableReader.Models
 			if (obj is Book)
 			{
 				var book = obj as Book;
-				isEqual = book.AccessToken == AccessToken && book.Name == Name;
+				isEqual = book.OriginAccessToken == OriginAccessToken && book.Name == Name;
 			}
 			return isEqual;
 		}

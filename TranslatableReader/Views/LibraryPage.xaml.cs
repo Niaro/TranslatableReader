@@ -18,8 +18,7 @@ namespace TranslatableReader.Views
 
 		// strongly-typed view models enable x:bind
 		public LibraryPageViewModel ViewModel => DataContext as LibraryPageViewModel;
-
-		#region Bottom AppBarBtns animation
+	
 		private bool _isMultiSelectMode = false;
 		public void ToggleMultiSelectMode()
 		{
@@ -37,6 +36,7 @@ namespace TranslatableReader.Views
 
 		}
 
+		#region Bottom AppBarBtns animation
 		private void hideNormalModeBtns_OnCompleted(object sender, object e)
 		{
 			ToggleAppBarBtnsVisibility();

@@ -103,11 +103,14 @@
     <Compile Include="Models\Book.cs" />
     <Compile Include="Mvvm\ViewModelBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BookDocumentBuilders\BookDocumentBuilder.cs" />
+    <Compile Include="Services\BookDocumentBuilders\Fb2BookDocumentBuilder.cs" />
+    <Compile Include="Services\BookDocumentBuilders\TxtBookDocumentBuilder.cs" />
     <Compile Include="Services\LibraryServices\BooksService.cs" />
     <Compile Include="Services\SettingsServices\ISettingsService.cs" />
     <Compile Include="Services\SettingsServices\SettingsService.Apply.cs" />
     <Compile Include="Services\SettingsServices\SettingsService.cs" />
-    <Compile Include="ViewModels\CurrentBookPageViewModel.cs" />
+    <Compile Include="ViewModels\BookPageViewModel.cs" />
     <Compile Include="ViewModels\LibraryPageViewModel.cs" />
     <Compile Include="ViewModels\DetailPageViewModel.cs" />
     <Compile Include="ViewModels\SettingsPageViewModel.cs" />
@@ -117,8 +120,8 @@
     <Compile Include="Views\LibraryPage.xaml.cs">
       <DependentUpon>LibraryPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\CurrentBookPage.xaml.cs">
-      <DependentUpon>CurrentBookPage.xaml</DependentUpon>
+    <Compile Include="Views\BookPage.xaml.cs">
+      <DependentUpon>BookPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
@@ -171,7 +174,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\CurrentBookPage.xaml">
+    <Page Include="Views\BookPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

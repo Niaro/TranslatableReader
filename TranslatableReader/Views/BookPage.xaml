@@ -1,4 +1,4 @@
-<Page x:Class="TranslatableReader.Views.CurrentBookPage"
+<Page x:Class="TranslatableReader.Views.BookPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:behaviors="using:Template10.Behaviors"
@@ -11,7 +11,7 @@
       xmlns:vm="using:TranslatableReader.ViewModels" mc:Ignorable="d">
 
     <Page.DataContext>
-		<vm:CurrentBookPageViewModel />
+		<vm:BookPageViewModel />
     </Page.DataContext>
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -46,12 +46,19 @@
         </VisualStateManager.VisualStateGroups>
 
         <!--  #region content  -->
+		
 		<Grid>
-			<TextBlock>
-				<Run Text="aalalla allala alalalalla alal" />				
-			</TextBlock>
+			<ScrollViewer x:Name="ScrollViewer" ZoomMode="Enabled" ManipulationCompleted="BookHolder_OnManipulationCompleted" DirectManipulationCompleted="ScrollViewer_OnDirectManipulationCompleted" ViewChanged="ScrollViewer_OnViewChanged">
+				<RichTextBlock  x:Name="BookHolder" IsTextSelectionEnabled="True" SelectionChanged="RichTextBlock_OnSelectionChanged" IsDoubleTapEnabled="True" Margin="10" 
+								 
+								LayoutUpdated="BookHolder_OnLayoutUpdated" ManipulationCompleted="BookHolder_OnManipulationCompleted">
+				</RichTextBlock>
+			</ScrollViewer>
+			<Grid x:Name="TranslateHolder" Canvas.ZIndex="1" VerticalAlignment="Bottom" Height="40" Padding="10,8,10,0" Opacity="0" >
+				<TextBlock x:Name="TranslateTextBlock"/>
+			</Grid>
 		</Grid>
-
+		
         <!--  #endregion  -->
 
     </Grid>

@@ -11,13 +11,14 @@ namespace TranslatableReader.Views
 	public sealed partial class Shell : Page, INotifyPropertyChanged
 	{
 		public static Shell Instance { get; set; }
-		public static HamburgerMenu HamburgerMenu => Instance.MyHamburgerMenu;
+		public static HamburgerMenu HamburgerMenu => Instance.Menu;
 
 		public Shell(INavigationService navigationService)
 		{
 			Instance = this;
 			InitializeComponent();
-			MyHamburgerMenu.NavigationService = navigationService;
+			Menu.NavigationService = navigationService;
+			Menu.OpenCloseMode = HamburgerMenu.OpenCloseModes.Swipe;
 		}
 
 		public bool IsBusy { get; set; } = false;
