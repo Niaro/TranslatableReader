@@ -1,8 +1,10 @@
 using System;
-using Windows.UI.Xaml;
 using System.Threading.Tasks;
+using TranslatableReader.Services;
 using TranslatableReader.Services.SettingsServices;
 using Windows.ApplicationModel.Activation;
+using Windows.Storage;
+using Windows.UI.Xaml;
 
 namespace TranslatableReader
 {
@@ -11,24 +13,27 @@ namespace TranslatableReader
 
 	sealed partial class App
 	{
-		ISettingsService _settings;
+		private readonly ISettingsService _settings = SettingsService.Instance;
+
+		public static StorageFolder Library;
+		public static BooksService BooksService;
 
 		public App()
 		{
 			Microsoft.ApplicationInsights.WindowsAppInitializer.InitializeAsync(
 				Microsoft.ApplicationInsights.WindowsCollectors.Metadata |
 				Microsoft.ApplicationInsights.WindowsCollectors.Session);
+
 			InitializeComponent();
 			SplashFactory = (e) => new Views.Splash(e);
 
 			#region App settings
 
-			_settings = SettingsService.Instance;
 			RequestedTheme = _settings.AppTheme;
 			CacheMaxDuration = _settings.CacheMaxDuration;
 			ShowShellBackButton = _settings.UseShellBackButton;
 
-			#endregion
+			#endregion App settings
 		}
 
 		// runs even if restored from state
@@ -37,6 +42,10 @@ namespace TranslatableReader
 			// setup hamburger shell
 			var nav = NavigationServiceFactory(BackButton.Attach, ExistingContent.Include);
 			Window.Current.Content = new Views.Shell(nav);
+
+			Library = await InitilizeLibraryStorageAsync();
+			BooksService = await BooksService.InitializeAsync();
+
 			await Task.Yield();
 		}
 
@@ -52,6 +61,11 @@ namespace TranslatableReader
 			// navigate to first page
 			NavigationService.Navigate(typeof(Views.LibraryPage));
 		}
+
+		private static async Task<StorageFolder> InitilizeLibraryStorageAsync()
+		{
+			return (StorageFolder)await ApplicationData.Current.LocalFolder.TryGetItemAsync("LibraryStorage") ??
+								  await ApplicationData.Current.LocalFolder.CreateFolderAsync("LibraryStorage");
+		}
 	}
 }
-

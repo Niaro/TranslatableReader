@@ -1,9 +1,9 @@
 using System.Linq;
-using Windows.UI.Xaml;
-using TranslatableReader.ViewModels;
-using Windows.UI.Xaml.Controls;
 using Template10.Mvvm;
 using TranslatableReader.Models;
+using TranslatableReader.ViewModels;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
 
 namespace TranslatableReader.Views
 {
@@ -13,13 +13,13 @@ namespace TranslatableReader.Views
 		{
 			InitializeComponent();
 			NavigationCacheMode = Windows.UI.Xaml.Navigation.NavigationCacheMode.Disabled;
-
 		}
 
 		// strongly-typed view models enable x:bind
 		public LibraryPageViewModel ViewModel => DataContext as LibraryPageViewModel;
-	
+
 		private bool _isMultiSelectMode = false;
+
 		public void ToggleMultiSelectMode()
 		{
 			_isMultiSelectMode = !_isMultiSelectMode;
@@ -33,15 +33,16 @@ namespace TranslatableReader.Views
 				BooksListView.SelectionMode = ListViewSelectionMode.None;
 				VisualStateManager.GoToState(ThisPage, "hideMultiSelectModeBtns", true);
 			}
-
 		}
 
 		#region Bottom AppBarBtns animation
+
 		private void hideNormalModeBtns_OnCompleted(object sender, object e)
 		{
 			ToggleAppBarBtnsVisibility();
 			VisualStateManager.GoToState(ThisPage, "showMultiSelectModeBtns", true);
 		}
+
 		private void hideMultiSelectModeBtns_OnCompleted(object sender, object e)
 		{
 			ToggleAppBarBtnsVisibility();
@@ -55,9 +56,11 @@ namespace TranslatableReader.Views
 			RemoveBooksBtn.Visibility = _isMultiSelectMode ? Visibility.Visible : Visibility.Collapsed;
 			TurnOffMultiSelectModeBtn.Visibility = _isMultiSelectMode ? Visibility.Visible : Visibility.Collapsed;
 		}
-		#endregion
 
-		DelegateCommand _removeBooksCommand;
+		#endregion Bottom AppBarBtns animation
+
+		private DelegateCommand _removeBooksCommand;
+
 		public DelegateCommand RemoveBooksCommand => _removeBooksCommand ?? (_removeBooksCommand = new DelegateCommand(async () =>
 		{
 			if (BooksListView.SelectedItems.Count > 0)
@@ -69,10 +72,10 @@ namespace TranslatableReader.Views
 			RemoveBooksCommand.RaiseCanExecuteChanged();
 		}
 
-		private void BooksListView_OnItemClick(object sender, ItemClickEventArgs e)
+		private async void BooksListView_OnItemClick(object sender, ItemClickEventArgs e)
 		{
 			if (!_isMultiSelectMode)
-				ViewModel.OpenBook((Book)e.ClickedItem);
+				await ViewModel.OpenBookAsync((Book)e.ClickedItem);
 		}
 	}
 }

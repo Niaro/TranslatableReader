@@ -21,9 +21,9 @@ namespace TranslatableReader.Services
 
 		internal static async Task<List<Paragraph>> BuildAsync(Book book)
 		{
-			var bookOriginText = await FileIO.ReadTextAsync(book.OriginFile);
+			var bookOriginText = await FileIO.ReadTextAsync(book.File);
 			IBookDocumentBuilder bookDocumentBuilder;
-			switch (book.OriginFile.FileType)
+			switch (book.File.FileType)
 			{
 				case ".txt":
 					bookDocumentBuilder = new TxtBookDocumentBuilder();
