@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Documents;
 
 namespace TranslatableReader.Services
@@ -23,8 +24,7 @@ namespace TranslatableReader.Services
 
 				var newParagraph = new Paragraph()
 				{
-					Inlines = { new Run { Text = txtRun } },
-					TextIndent = TextTabIndent
+					Inlines = { new Run { Text = txtRun } }
 				};
 				txtRun = "";
 				paragraphs.Add(newParagraph);

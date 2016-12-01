@@ -1,15 +1,18 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Template10.Mvvm;
 using Windows.Storage;
 using Windows.Storage.AccessCache;
+using Windows.Devices.Sensors;
+using Windows.UI.Xaml.Documents;
 
 namespace TranslatableReader.Models
 {
-	public class Book : BindableBase
+	public class Book: BindableBase
 	{
 		private Bookmark _bookmark = new Bookmark();
 		private string _name = default(string);
@@ -59,7 +62,7 @@ namespace TranslatableReader.Models
 			var isEqual = false;
 			if (obj is Book)
 			{
-				var book = obj as Book;
+				var book = (Book) obj;
 				isEqual = book.OriginAccessToken == OriginAccessToken && book.Name == Name;
 			}
 			return isEqual;
@@ -136,27 +139,17 @@ namespace TranslatableReader.Models
 	[JsonObject]
 	public class Bookmark
 	{
-		public static int TextWidth = 150;
-
-		public string Text { get; set; }
-		public double VerticalOffset { get; set; }
-
-		public double ViewportWidth { get; set; } = 1;
+		public SimpleOrientation Orientation { get; set; }
+		public double Position { get; set; }
 
 		public Bookmark()
 		{
 		}
 
-		public Bookmark(string text, double viewportWidth, double verticalOffset)
+		public Bookmark(double position, SimpleOrientation orientation)
 		{
-			Text = text;
-			ViewportWidth = viewportWidth;
-			VerticalOffset = verticalOffset;
-		}
-
-		public double GetVerticalOffset(double actualViewportWidth)
-		{
-			return actualViewportWidth * VerticalOffset / ViewportWidth;
+			Position = position;
+			Orientation = orientation;
 		}
 	}
 }

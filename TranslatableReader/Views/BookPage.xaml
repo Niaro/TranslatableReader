@@ -48,14 +48,15 @@
 		<!--  #region content  -->
 
 		<Grid>
-			<!--<ScrollViewer x:Name="ScrollViewer" ZoomMode="Enabled" ManipulationCompleted="BookHolder_OnManipulationCompleted" IsDeferredScrollingEnabled="True"
-						  DirectManipulationCompleted="ScrollViewer_OnDirectManipulationCompleted" ViewChanged="ScrollViewer_OnViewChanged">
-			</ScrollViewer>-->
+			<ScrollViewer x:Name="ScrollViewer"
+						  ZoomMode="Enabled"
+						  ViewChanged="ScrollViewer_OnViewChanged">
+				<controls:RichTextViewer x:Name="BookHolder" Source="{Binding Paragraphs}">
+				</controls:RichTextViewer>
+			</ScrollViewer>
 
-			<controls:RichTextViewer x:Name="RichTextViewer">
-			</controls:RichTextViewer>
-			<Grid x:Name="TranslateHolder" Canvas.ZIndex="1" VerticalAlignment="Bottom" Height="40" Padding="10,8,10,0" Opacity="0">
-				<TextBlock x:Name="TranslateTextBlock" />
+			<Grid Canvas.ZIndex="1" VerticalAlignment="Bottom" Height="40" Padding="10" Opacity="1" Background="#FFF9F9F9">
+				<TextBlock x:Name="TranslationHolder" Text="{Binding Translation}" Foreground="Black"/>
 			</Grid>
 		</Grid>
 

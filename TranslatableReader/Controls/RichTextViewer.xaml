@@ -2,14 +2,44 @@
     x:Class="TranslatableReader.Controls.RichTextViewer"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:TranslatableReader.Controls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    d:DesignHeight="300"
-    d:DesignWidth="400">
-	<ListView  x:Name="TextViewerListContainer" SelectionMode="None" IsDoubleTapEnabled="False" IsItemClickEnabled="False" IsHoldingEnabled="False" IsRightTapEnabled="False" IsTapEnabled="False" CompositeMode="Inherit" IsMultiSelectCheckBoxEnabled="False" ShowsScrollingPlaceholders="False">
+    xmlns:local="using:TranslatableReader.Controls">
+	<ListView  x:Name="TextViewerListContainer"
+			   SelectionMode="None"
+			   IsDoubleTapEnabled="False"
+			   IsItemClickEnabled="False"
+			   IsHoldingEnabled="False"
+			   IsRightTapEnabled="False"
+			   IsTapEnabled="False"
+			   IsMultiSelectCheckBoxEnabled="False"
+			   ShowsScrollingPlaceholders="False">
+		<ListView.ItemContainerStyle>
+			<Style TargetType="ListViewItem">
+				<Setter Property="Background" Value="Transparent" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="ListViewItem">
+							<ContentPresenter />
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+		</ListView.ItemContainerStyle>
 		<ListView.ItemTemplate>
 			<DataTemplate>
-				<RichTextBlock IsTextSelectionEnabled="True" local:RichTextBlockHelper.Blocks="{Binding}"></RichTextBlock>
+				<RichTextBlock IsTextSelectionEnabled="True"
+							   local:RichTextBlockHelper.Blocks="{Binding}"
+							   SelectionChanged="RichTextBlock_OnSelectionChanged"
+							   TextIndent="15" 
+							   LineStackingStrategy="MaxHeight"
+							   Margin="15,0">
+					<RichTextBlock.Resources>
+						<Style TargetType="Paragraph">
+							<Setter Property="Margin" Value="10"></Setter>
+							<Setter Property="LineHeight" Value="20"></Setter>
+							<Setter Property="TextIndent" Value="50"></Setter>
+						</Style>
+					</RichTextBlock.Resources>
+				</RichTextBlock>
 			</DataTemplate>
 		</ListView.ItemTemplate>
 	</ListView>

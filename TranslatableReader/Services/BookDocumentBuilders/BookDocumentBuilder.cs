@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Windows.UI.Xaml;
 using TranslatableReader.Models;
 using Windows.UI.Xaml.Documents;
 
@@ -17,7 +18,8 @@ namespace TranslatableReader.Services
 
 	public class BookDocumentBuilder
 	{
-		public double TextTabIndent { get; } = 15;
+		public double ParagraphTabIndent { get; } = 15;
+		public Thickness ParagraphMargin { get; } = new Thickness(0, 0, 0, 0);
 
 		internal static async Task<List<Paragraph>> BuildAsync(Book book)
 		{

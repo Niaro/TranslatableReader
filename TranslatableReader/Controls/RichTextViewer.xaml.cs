@@ -20,12 +20,6 @@ using Windows.UI.Xaml.Navigation;
 
 namespace TranslatableReader.Controls
 {
-	internal static class Extensions
-	{
-		public static ChangedEventArgs<T> ToChangedEventArgs<T>(this DependencyPropertyChangedEventArgs e)
-			=> new ChangedEventArgs<T>((T)e.OldValue, (T)e.NewValue);
-	}
-
 	public sealed partial class RichTextViewer : UserControl
 	{
 		public List<Paragraph> Source
@@ -44,6 +38,8 @@ namespace TranslatableReader.Controls
 
 		public event EventHandler<ChangedEventArgs<List<Paragraph>>> SourceChanged;
 
+		public event EventHandler<RoutedEventArgs> SelectionChanged;
+
 		#region Debug
 
 		private static void DebugWrite(string text = null, Template10.Services.LoggingService.Severities severity = Template10.Services.LoggingService.Severities.Template10, [CallerMemberName]string caller = null) =>
@@ -53,15 +49,30 @@ namespace TranslatableReader.Controls
 
 		public RichTextViewer()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 
 			SourceChanged += RichTextViewer_SourceChanged;
-			TextViewerListContainer.ItemsSource = Source;
 		}
 
 		private void RichTextViewer_SourceChanged(object sender, ChangedEventArgs<List<Paragraph>> e)
 		{
-			TextViewerListContainer.ItemsSource = e.NewValue;
+			var source = e.NewValue;
+			var paragraphsCollections = new List<ParagraphsCollection>();
+			var pages = Math.Ceiling((double)source.Count / ParagraphsCollection.Count);
+
+			int rangeFirstIndex = 0;
+			var offset = ParagraphsCollection.Count;
+			for (var page = 0; page < pages; page++)
+			{
+				rangeFirstIndex = page == 0 ? rangeFirstIndex : rangeFirstIndex + offset;
+				var rangeLastIndex = rangeFirstIndex + offset;
+				var rangeCount = rangeLastIndex < source.Count ? offset : offset - (rangeLastIndex - source.Count);
+
+				var paragraphsCollection = e.NewValue.GetRange(rangeFirstIndex, rangeCount);
+				paragraphsCollections.Add(new ParagraphsCollection(paragraphsCollection));
+			}
+
+			TextViewerListContainer.ItemsSource = paragraphsCollections;
 		}
 
 		// debug write change
@@ -69,28 +80,43 @@ namespace TranslatableReader.Controls
 		{
 			DebugWrite($"OldValue: {e.OldValue} NewValue: {e.NewValue}", caller: v);
 		}
+
+		private void RichTextBlock_OnSelectionChanged(object sender, RoutedEventArgs e)
+		{
+			SelectionChanged.Invoke(sender, e);
+		}
 	}
 
-	public class RichListViewItem
+	internal static class Extensions
 	{
+		public static ChangedEventArgs<T> ToChangedEventArgs<T>(this DependencyPropertyChangedEventArgs e)
+			=> new ChangedEventArgs<T>((T)e.OldValue, (T)e.NewValue);
+	}
+
+	internal class ParagraphsCollection
+	{
+		public const int Count = 10;
+
+		public ParagraphsCollection(List<Paragraph> collection)
+		{
+			Collection = collection;
+		}
+
+		public List<Paragraph> Collection { get; set; }
 	}
 
 	public class RichTextBlockHelper : DependencyObject
 	{
-		public static readonly DependencyProperty BlocksProperty =
-			DependencyProperty.RegisterAttached("Blocks", typeof(object),
-				typeof(RichTextBlockHelper),
-				new PropertyMetadata(default(object), PropertyChangedCallback));
+		public static readonly DependencyProperty BlocksProperty = DependencyProperty.RegisterAttached("Blocks", typeof(object), typeof(RichTextBlockHelper), new PropertyMetadata(default(object), PropertyChangedCallback));
 
 		private static void PropertyChangedCallback(DependencyObject sender, DependencyPropertyChangedEventArgs e)
 		{
 			var control = sender as RichTextBlock;
-			if (control != null)
-			{
-				control.Blocks.Clear();
-				var value = (Paragraph)e.NewValue;
-				control.Blocks.Add(value);
-			}
+			if (control == null) return;
+
+			control.Blocks.Clear();
+			var collection = ((ParagraphsCollection)e.NewValue).Collection;
+			collection.ForEach(control.Blocks.Add);
 		}
 
 		public static object GetBlocks(UIElement element)

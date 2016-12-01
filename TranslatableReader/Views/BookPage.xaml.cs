@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Linq;
+using System.Threading;
 using TranslatableReader.Models;
 using TranslatableReader.ViewModels;
+using Windows.Devices.Sensors;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -15,48 +19,58 @@ using Windows.UI.Xaml.Navigation;
 
 namespace TranslatableReader.Views
 {
-	public class ListViewRichTextBlockItem
-	{
-		public List<Paragraph> Source { get; set; } = new List<Paragraph>();
-
-		public ListViewRichTextBlockItem()
-		{
-		}
-
-		public ListViewRichTextBlockItem(Paragraph bp)
-		{
-			Source.Add(bp);
-		}
-	}
-
 	public sealed partial class BookPage : Page
 	{
 		// strongly-typed view models enable x:bind
 		public BookPageViewModel ViewModel => DataContext as BookPageViewModel;
+
+		public bool IsInitialPositionSet = false;
+
+		private static SimpleOrientation Orientation => SimpleOrientationSensor.GetDefault().GetCurrentOrientation();
 
 		public BookPage()
 		{
 			InitializeComponent();
 			NavigationCacheMode = NavigationCacheMode.Disabled;
 
-			ViewModel.OnBookLoad += (o, e) =>
-		  {
-			  //ViewModel.ViewportBookParagraphs.ForEach(BookHolder.Blocks.Add);
-			  //ViewModel.BookParagraphs.ForEach(BookHolder.Blocks.Add);
-			  //List<string> test = (await FileIO.ReadTextAsync(ViewModel.Book.File)).Split(new char[] { '\n' }).ToList();
-			  RichTextViewer.Source = ViewModel.BookParagraphs;
-			  Shell.SetBusy(false);
-		  };
+			var bookLoad = Observable.FromEventPattern(ViewModel, "BookLoaded").Select(s => s.EventArgs as Book);
+			var layoutUpdate = Observable.FromEventPattern(ScrollViewer, "LayoutUpdated");
+			var sizeChanged = Observable.FromEventPattern(BookHolder, "SizeChanged");
+			var orientationChange = Observable.FromEventPattern(SimpleOrientationSensor.GetDefault(), "OrientationChanged");
+
+			bookLoad.Subscribe(_ => Shell.SetBusy(false));
+
+			var restorePositionRequest = Observable.Merge(
+					layoutUpdate.SkipWhile(o => ScrollViewer.ExtentHeight == 0).FirstAsync().Select(_ => (object)null),
+					orientationChange.Skip(1).SelectMany(sizeChanged.FirstAsync()).Select(_ => (object)Orientation)
+				);
+
+			Observable.CombineLatest(
+					bookLoad,
+					restorePositionRequest,
+					(book, orientation) => new { bookmark = book.Bookmark, orientation }
+				)
+				.ObserveOn(SynchronizationContext.Current)
+				.Subscribe(RestoreBookmarkPosition);
+
+			Observable
+				.FromEventPattern(BookHolder, "SelectionChanged")
+				.Throttle(TimeSpan.FromSeconds(.5))
+				.ObserveOn(SynchronizationContext.Current)
+				.Where(pattern => pattern.Sender is RichTextBlock)
+				.Select(pattern => (RichTextBlock)pattern.Sender)
+				.Subscribe(OnNextSelection);
+		}
+
+		private void OnNextSelection(RichTextBlock richTextBlock)
+		{
+			ViewModel.Translation = richTextBlock.SelectedText;
 		}
 
 		protected override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			Shell.HamburgerMenu.IsFullScreen = true;
 			Shell.SetBusy(true);
-
-			//int index;
-			//if (int.TryParse(e.Parameter?.ToString(), out index))
-			//	MyPivot.SelectedIndex = index;
 		}
 
 		protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -64,42 +78,37 @@ namespace TranslatableReader.Views
 			Shell.HamburgerMenu.IsFullScreen = false;
 		}
 
-		private void RichTextBlock_OnSelectionChanged(object sender, RoutedEventArgs e)
+		private void RestoreBookmarkPosition(dynamic args)
 		{
-			//Debug.WriteLine($"RichTextBlock_OnSelectionChanged");
+			double offsetIndex = 1;
+			Bookmark bookmark = args.bookmark;
+			SimpleOrientation? orientation = args.orientation;
+
+			if (orientation == null && bookmark.Orientation != Orientation)
+				orientation = Orientation;
+
+			if (orientation != null)
+			{
+				if (orientation == SimpleOrientation.Rotated90DegreesCounterclockwise || orientation == SimpleOrientation.Rotated270DegreesCounterclockwise)
+					offsetIndex = 1.39;
+				else
+					offsetIndex = 0.72;
+			}
+
+			var offset = (bookmark.Position / offsetIndex) / (ScrollViewer.ExtentHeight / ScrollViewer.ActualHeight);
+			ScrollViewer.ChangeView(null, offset, null, true);
 		}
 
-		private void BookHolder_OnLayoutUpdated(object sender, object e)
+		private async void ScrollViewer_OnViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
 		{
-			//if (ScrollViewer.VerticalOffset == 0 && ViewModel.Book != null)
-			//{
-			//	ScrollViewer.ScrollToVerticalOffset(ViewModel.Book.Bookmark.GetVerticalOffset(ScrollViewer.ViewportWidth));
-			//	Debug.WriteLine($"Bookmark.VerticalOffset: {ViewModel.Book.Bookmark.GetVerticalOffset(ScrollViewer.ViewportWidth)}");
-			//};
-
-			//Debug.WriteLine($"ScrollViewer.VerticalOffset: {ScrollViewer.VerticalOffset}");
+			var offset = ScrollViewer.ExtentHeight / ScrollViewer.ActualHeight * ScrollViewer.VerticalOffset;
+			ViewModel.Book.Bookmark = new Bookmark(offset, Orientation);
+			await ViewModel.Book.Metadata.SaveAsync();
 		}
 
-		private void BookHolder_OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
+		private void ScrollViewer_PointerReleased(object sender, PointerRoutedEventArgs e)
 		{
-			Debug.WriteLine($"BookHolder_OnManipulationCompleted");
-		}
 
-		private void ScrollViewer_OnDirectManipulationCompleted(object sender, object e)
-		{
-			Debug.WriteLine($"ScrollViewer_OnDirectManipulationCompleted");
-		}
-
-		private void ScrollViewer_OnViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-		{
-			//var topOfViewportTextPointer = BookHolder.GetPositionFromPoint(new Point(0, ScrollViewer.VerticalOffset));
-
-			//var start = topOfViewportTextPointer.GetPositionAtOffset(0, LogicalDirection.Forward);
-			//var end = topOfViewportTextPointer.GetPositionAtOffset(Bookmark.TextWidth, LogicalDirection.Forward);
-
-			//BookHolder.Select(start, end);
-			//ViewModel.Book.Bookmark = new Bookmark(BookHolder.SelectedText, ScrollViewer.ViewportWidth, ScrollViewer.VerticalOffset);
-			//BookHolder.Select(start, start);
 		}
 	}
 }

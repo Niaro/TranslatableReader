@@ -21,20 +21,30 @@ namespace TranslatableReader.ViewModels
 {
 	public class BookPageViewModel : Mvvm.ViewModelBase
 	{
+		private string _translation;
+		private List<Paragraph> _paragraphs;
+
 		public BooksService BooksService = BooksService.Instance;
-
-		public List<Paragraph> BookParagraphs { get; set; } = new List<Paragraph>();
-
-		public List<Paragraph> ViewportBookParagraphs { get; set; } = new List<Paragraph>();
-		public Paragraph ActiveParagraph { get; set; }
-
-		public EventHandler OnBookLoad;
+		
+		public event EventHandler<Book> BookLoaded;
 
 		public BookPageViewModel()
 		{
 		}
 
 		public Book Book { get; private set; }
+	
+		public List<Paragraph> Paragraphs
+		{
+			get { return _paragraphs; }
+			set { Set(ref _paragraphs, value); }
+		}
+
+		public string Translation
+		{
+			get { return _translation; }
+			set { Set(ref _translation, value); }
+		}
 
 		public override async Task OnNavigatedToAsync(object book, NavigationMode mode, IDictionary<string, object> state)
 		{
@@ -43,19 +53,9 @@ namespace TranslatableReader.ViewModels
 			else
 				Book = BooksService.Books.Single(b => b.Equals(book));
 
-			BookParagraphs = await BookDocumentBuilder.BuildAsync(Book);
+			Paragraphs = await BookDocumentBuilder.BuildAsync(Book);
 
-			int indexTargetParagraph = 0;
-			if (Book.Bookmark.Text != null)
-			{
-				ActiveParagraph = BookParagraphs.Find(p => p.Inlines.Any(x => ((Run)x).Text.Contains(Book.Bookmark.Text)));
-				indexTargetParagraph = Math.Abs(BookParagraphs.IndexOf(ActiveParagraph) - 2);
-				Debug.WriteLine(indexTargetParagraph + 2);
-			}
-
-			ViewportBookParagraphs = BookParagraphs.GetRange(indexTargetParagraph, Math.Min(indexTargetParagraph + 4, BookParagraphs.Count));
-
-			OnBookLoad.Invoke(Book, new EventArgs());
+			BookLoaded?.Invoke(this, Book);
 
 			state.Clear();
 
